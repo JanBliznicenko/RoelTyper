@@ -34,6 +34,7 @@ ExtractedType class >> mergerClass [
 { #category : 'private-accessing' }
 ExtractedType >> addAssignment: anObject [
 
+	self haltIf: [ anObject = ByteString ].
 	self assignments addIfNotPresent: anObject
 ]
 
@@ -50,6 +51,7 @@ ExtractedType >> addReverseLinkedExtractedType: anExtractedType [
 
 { #category : 'private-accessing' }
 ExtractedType >> addSend: anObject [
+
 	self interface add: anObject
 ]
 

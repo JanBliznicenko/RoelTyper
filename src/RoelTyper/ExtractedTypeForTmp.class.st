@@ -18,6 +18,15 @@ ExtractedTypeForTmp class >> forTmpOffset: offset ofCompiledMethod: aCompiledMet
 		yourself
 ]
 
+{ #category : 'private-accessing' }
+ExtractedTypeForTmp >> addAssignment: anObject [
+
+	self haltIf: [
+		compiledMethod selector = #nestedBlocksUsingOuterTemps and: [
+			anObject = ByteString ] ].
+	self assignments addIfNotPresent: anObject
+]
+
 { #category : 'accessing' }
 ExtractedTypeForTmp >> asBlockArgInTypeCollector: aTypeCollector [
 	aTypeCollector transformAsBlockArg: self 

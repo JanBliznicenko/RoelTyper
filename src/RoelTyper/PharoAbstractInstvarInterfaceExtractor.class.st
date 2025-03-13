@@ -147,14 +147,13 @@ PharoAbstractInstvarInterfaceExtractor >> pushRemoteTemp: remoteTempIndex inVect
 
 	self inABlock
 		ifTrue: [ stack add: (self blockMapping at: tempVectorIndex + 1) ]
-		ifFalse: [ stack add: #temp -> tempVectorIndex ]
+		ifFalse: [ stack add: #temp -> (tempVectorIndex negated - 1) ]
 ]
 
 { #category : 'instruction decoding' }
 PharoAbstractInstvarInterfaceExtractor >> pushTemporaryVariable: offset [
 	"Push Contents Of Temporary Variable Whose Index Is the 
 	argument, offset, On Top Of Stack bytecode."
-
 	self inABlock
 		ifTrue: [
 			stack add: (self blockMapping

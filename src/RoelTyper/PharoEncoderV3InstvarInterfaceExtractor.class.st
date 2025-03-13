@@ -61,6 +61,7 @@ PharoEncoderV3InstvarInterfaceExtractor >> pushClosureCopyNumCopiedValues: numCo
 	1 to: numArgs do: [ :index |
 	self blockMapping add: #blockArg -> index ].
 	numCopied timesRepeat: [
+	self halt.
 		self blockMapping add: stack removeLast afterIndex: numArgs ].
 	stack addLast: #block.
 	blockArgs := numArgs

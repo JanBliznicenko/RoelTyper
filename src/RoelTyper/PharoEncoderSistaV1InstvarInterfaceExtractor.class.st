@@ -12,7 +12,7 @@ Class {
 { #category : 'extracting' }
 PharoEncoderSistaV1InstvarInterfaceExtractor >> extractInterfacesFrom: m addTo: aTypeCollector [
 
-	tempVarAmount := m numTemps.
+	tempVarAmount := m ast temporaries size + m ast arguments size.
 	^ super extractInterfacesFrom: m addTo: aTypeCollector
 ]
 
@@ -27,12 +27,11 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> methodReturnTop [
 PharoEncoderSistaV1InstvarInterfaceExtractor >> popIntoRemoteTemp: remoteTempIndex inVectorAt: tempVectorIndex [
 	"Remove Top Of Stack And Store Into Offset of Temp Vector bytecode."
 
-	| methodLevelOffset rvalue |
-	rvalue := super
-		          popIntoRemoteTemp: remoteTempIndex
-		          inVectorAt: tempVectorIndex.
-	methodLevelOffset := self tempOffsetFrom: tempVectorIndex.
-	collector handleAssignment: rvalue forTmp: methodLevelOffset
+	| rvalue |
+	rvalue := stack removeLast.
+	collector
+		handleAssignment: rvalue
+		forTmp: remoteTempIndex negated - 1
 ]
 
 { #category : 'instruction decoding' }
@@ -42,6 +41,7 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> pushFullClosure: compiledBlock n
 	self newBlockMapping.
 	originalInput := input.
 	input := InstructionStream on: compiledBlock.
+
 	tempVarAmount to: tempVarAmount + compiledBlock numArgs - 1 do: [
 	:index | self blockMapping add: #blockArg -> index ].
 	numCopied timesRepeat: [
@@ -61,13 +61,20 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> pushFullClosure: compiledBlock n
 ]
 
 { #category : 'instruction decoding' }
+PharoEncoderSistaV1InstvarInterfaceExtractor >> pushRemoteTemp: remoteTempIndex inVectorAt: tempVectorIndex [
+
+	stack add: #temp -> (remoteTempIndex negated - 1)
+]
+
+{ #category : 'instruction decoding' }
 PharoEncoderSistaV1InstvarInterfaceExtractor >> storeIntoRemoteTemp: remoteTempIndex inVectorAt: tempVectorIndex [
 	"Pharo 9+
 	 Store Top Of Stack And Store Into Offset of Temp Vector bytecode."
 
-	| methodLevelOffset rvalue |
-	methodLevelOffset := self tempOffsetFrom: tempVectorIndex.
+	| rvalue |
 	rvalue := stack removeLast.
-	collector handleAssignment: rvalue forTmp: methodLevelOffset.
+	collector
+		handleAssignment: rvalue
+		forTmp: remoteTempIndex negated - 1.
 	stack add: rvalue
 ]
