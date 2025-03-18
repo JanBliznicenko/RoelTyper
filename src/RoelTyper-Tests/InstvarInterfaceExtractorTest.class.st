@@ -474,18 +474,31 @@ InstvarInterfaceExtractorTest >> testNestedBlocksUsingOuterTemps [
 	self
 		assertCollection: results keys
 		hasSameElements:
-		#( #'^' #t1 #tb1 #'_block1->t2' #'_block1->tb2' #'_block2->t3' ).
+			#( #'^' #ta1 #ta2 #ta3 #ta4 #'_block1->tb1' #'_block1->tb2'
+			   #'_block1->tb3' #'_block1->tb4' #'_block2->tc1' ).
 	self
 		assertCollection: (results at: #'^') assignments
 		hasSameElements: { ASampleClass }.
 	self
-		assertCollection: (results at: #t1) assignments
-		hasSameElements: { SmallFloat64 }.
-	self
-		assertCollection: (results at: #'_block1->t2') assignments
+		assertCollection: (results at: #ta2) assignments
 		hasSameElements: { ByteString }.
 	self
-		assertCollection: (results at: #'_block2->t3') assignments
+		assertCollection: (results at: #ta3) assignments
+		hasSameElements: { SmallFloat64 }.
+	self
+		assertCollection: (results at: #ta4) assignments
+		hasSameElements: { BlockClosure }.
+	self
+		assertCollection: (results at: #'_block1->tb1') assignments
+		hasSameElements: { BlockClosure }.
+	self
+		assertCollection: (results at: #'_block1->tb3') assignments
+		hasSameElements: { Character }.
+	self
+		assertCollection: (results at: #'_block1->tb4') assignments
+		hasSameElements: { Date }.
+	self
+		assertCollection: (results at: #'_block2->tc1') assignments
 		hasSameElements: { SmallInteger }
 ]
 
