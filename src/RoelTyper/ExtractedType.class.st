@@ -34,7 +34,6 @@ ExtractedType class >> mergerClass [
 { #category : 'private-accessing' }
 ExtractedType >> addAssignment: anObject [
 
-	self haltIf: [ anObject = ByteString ].
 	self assignments addIfNotPresent: anObject
 ]
 

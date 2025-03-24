@@ -54,20 +54,6 @@ PharoEncoderV3InstvarInterfaceExtractor >> popIntoTemporaryVariable: offset [
 ]
 
 { #category : 'instruction decoding' }
-PharoEncoderV3InstvarInterfaceExtractor >> pushClosureCopyNumCopiedValues: numCopied numArgs: numArgs blockSize: blockSize [
-
-	self newBlockMapping.
-	self blocksArgsBySize add: blockSize + input pc - 1.
-	1 to: numArgs do: [ :index |
-	self blockMapping add: #blockArg -> index ].
-	numCopied timesRepeat: [
-	self halt.
-		self blockMapping add: stack removeLast afterIndex: numArgs ].
-	stack addLast: #block.
-	blockArgs := numArgs
-]
-
-{ #category : 'instruction decoding' }
 PharoEncoderV3InstvarInterfaceExtractor >> storeIntoTemporaryVariable: offset [
 	"Store Top Of Stack Into Temporary Variable Of Method bytecode."
 

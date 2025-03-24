@@ -50,6 +50,30 @@ ASampleClass >> c [
 	c := b
 ]
 
+{ #category : 'blocks typing' }
+ASampleClass >> inlinedBlocks [
+
+	| t1 t2 t3 |
+	t1 := 1.
+	t2 ifNotNil: [ :t4 |
+		| t5 t6 |
+		t5 := 't5'.
+		t6 := 1.2.
+		t4 > 5.
+		Array new do: [ :t7 |
+			| t8 |
+			t7 asInteger.
+			t7 ifNil: [ t8 asString ].
+			Array new withIndexDo: [ :t9 :t10 |
+				| t11 t12 |
+				t11 := $1.
+				t12 := #t12.
+				t6 * t6.
+				t9 , t10 ] ] ].
+	t3 := #(  ).
+	^ Set new
+]
+
 { #category : 'temporaries typing' }
 ASampleClass >> nestedBlocksComplex: mArg [
 

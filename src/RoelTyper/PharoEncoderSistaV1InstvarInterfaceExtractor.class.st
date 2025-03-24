@@ -2,7 +2,8 @@ Class {
 	#name : 'PharoEncoderSistaV1InstvarInterfaceExtractor',
 	#superclass : 'PharoAbstractInstvarInterfaceExtractor',
 	#instVars : [
-		'tempVarAmount'
+		'tempVarAmount',
+		'preparedVectorSize'
 	],
 	#category : 'RoelTyper-Pharo',
 	#package : 'RoelTyper',
@@ -12,8 +13,17 @@ Class {
 { #category : 'extracting' }
 PharoEncoderSistaV1InstvarInterfaceExtractor >> extractInterfacesFrom: m addTo: aTypeCollector [
 
-	tempVarAmount := m ast temporaries size + m ast arguments size.
+	tempVarAmount := m numTemps.
+	preparedVectorSize := 0.
 	^ super extractInterfacesFrom: m addTo: aTypeCollector
+]
+
+{ #category : 'instruction decoding' }
+PharoEncoderSistaV1InstvarInterfaceExtractor >> indexOfVectorTemp: remoteTempIndex inVectorAt: tempVectorIndex [
+
+	| methodLevelOffset |
+	methodLevelOffset := self tempOffsetFrom: tempVectorIndex.
+	^ methodLevelOffset + remoteTempIndex
 ]
 
 { #category : 'instruction decoding' }
@@ -31,7 +41,17 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> popIntoRemoteTemp: remoteTempInd
 	rvalue := stack removeLast.
 	collector
 		handleAssignment: rvalue
-		forTmp: remoteTempIndex negated - 1
+		forTmp:
+		(self indexOfVectorTemp: remoteTempIndex inVectorAt: tempVectorIndex)
+]
+
+{ #category : 'instruction decoding' }
+PharoEncoderSistaV1InstvarInterfaceExtractor >> popIntoTemporaryVariable: offset [
+
+	preparedVectorSize isZero ifFalse: [
+		preparedVectorSize := 0.
+		^ self ].
+	^ super popIntoTemporaryVariable: offset
 ]
 
 { #category : 'instruction decoding' }
@@ -41,7 +61,6 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> pushFullClosure: compiledBlock n
 	self newBlockMapping.
 	originalInput := input.
 	input := InstructionStream on: compiledBlock.
-
 	tempVarAmount to: tempVarAmount + compiledBlock numArgs - 1 do: [
 	:index | self blockMapping add: #blockArg -> index ].
 	numCopied timesRepeat: [
@@ -61,9 +80,15 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> pushFullClosure: compiledBlock n
 ]
 
 { #category : 'instruction decoding' }
+PharoEncoderSistaV1InstvarInterfaceExtractor >> pushNewArrayOfSize: aSize [
+
+	preparedVectorSize := aSize
+]
+
+{ #category : 'instruction decoding' }
 PharoEncoderSistaV1InstvarInterfaceExtractor >> pushRemoteTemp: remoteTempIndex inVectorAt: tempVectorIndex [
 
-	stack add: #temp -> (remoteTempIndex negated - 1)
+	stack add: #temp -> (self indexOfVectorTemp: remoteTempIndex inVectorAt: tempVectorIndex)
 ]
 
 { #category : 'instruction decoding' }
@@ -75,6 +100,7 @@ PharoEncoderSistaV1InstvarInterfaceExtractor >> storeIntoRemoteTemp: remoteTempI
 	rvalue := stack removeLast.
 	collector
 		handleAssignment: rvalue
-		forTmp: remoteTempIndex negated - 1.
+		forTmp:
+		(self indexOfVectorTemp: remoteTempIndex inVectorAt: tempVectorIndex).
 	stack add: rvalue
 ]
