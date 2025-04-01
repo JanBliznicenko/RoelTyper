@@ -273,9 +273,24 @@ TypeCollector >> extractClass: aClass [
 	self onClass: aClass.
 	extractor := self newExtractor.
 
-	aClass selectorsAndMethodsDo: [ :sel :method |
+	aClass methodsDo: [ :method |
 		currentExtractedMethod := method.
-		extractor extractInterfacesFrom: method addTo: self ]
+		extractor extractInterfacesFrom: method addTo: self ].
+
+	^ extractor
+]
+
+{ #category : 'public-typing' }
+TypeCollector >> extractClass: aClass withExtraMethod: aCompiledMethod [
+
+	"The extra method must belong to the same class, but does not have to be installed (and even the installed version might exist along side of it). Still usable with installed method as well."
+
+	| extractor |
+	extractor := self extractClass: aClass.
+	self addLocalTypingResultsFor: aCompiledMethod.
+
+	currentExtractedMethod := aCompiledMethod.
+	extractor extractInterfacesFrom: aCompiledMethod addTo: self.
 ]
 
 { #category : 'adding' }
@@ -524,7 +539,7 @@ TypeCollector >> typeInstvarsOfClass: aClass [
 { #category : 'public-typing' }
 TypeCollector >> typeTmpsIn: aCompiledMethod ofClass: aClass [
 
-	self extractClass: aClass.
+	self extractClass: aClass withExtraMethod: aCompiledMethod.
 	^ self packagedResultsForCompiledMethod: aCompiledMethod
 ]
 
