@@ -221,7 +221,6 @@ TypeCollector >> addSend: selector to: index [
 TypeCollector >> addSend: selector toTmp: index [
 	"Add a range check to filter out sends to instvars defined in superclasses, etc."
 
-	self haltIf: [ currentExtractedMethod = #runOnDAPackageRelationGraph: ].
 	(self localTypingResultOf: currentExtractedMethod index: index)
 		addSend: selector
 ]

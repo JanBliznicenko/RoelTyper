@@ -99,19 +99,9 @@ ExtractedType >> flattenLinks [
 { #category : 'private' }
 ExtractedType >> foldInterfaceTypes: interfaceClasses withAssignmentTypes: assignmentClasses [
 
-	| tmp |
-	assignmentClasses remove: UndefinedObject ifAbsent: [  ].
-	tmp := interfaceClasses.
-	(assignmentClasses isEmpty and: [
-		 ((interface includes: #value) or: [
-			  (interface includes: #value:) or: [ interface includes: #cull: ] ])
-			 and: [ interfaceClasses includes: BlockClosure ] ]) ifTrue: [
-		tmp := OrderedCollection streamContents: [ :s |
-			       s nextPut: BlockClosure.
-			       (interfaceClasses includes: Symbol) ifTrue: [
-				       s nextPut: Symbol ] ] ].
+	assignmentClasses remove: UndefinedObject ifAbsent: [ ].
 	^ self class mergerClass
-		  interfaceTypes: tmp
+		  interfaceTypes: interfaceClasses
 		  assignmentTypes: assignmentClasses
 ]
 
