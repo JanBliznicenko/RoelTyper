@@ -54,6 +54,12 @@ ExtractedType >> addSend: anObject [
 	self interface add: anObject
 ]
 
+{ #category : 'as yet unclassified' }
+ExtractedType >> allLinks [
+
+	^ self putWithAllLinksTo: Set new
+]
+
 { #category : 'private-accessing' }
 ExtractedType >> assignments [
 	^assignments
@@ -189,6 +195,14 @@ ExtractedType >> printOn: aStream [
 	self basicExtractedTypes
 		ifNil: [self printInterfaceAndAssigmentsOn: aStream]
 		ifNotNil: [self printTypesOn: aStream]
+]
+
+{ #category : 'as yet unclassified' }
+ExtractedType >> putWithAllLinksTo: aSet [
+
+	aSet addIfNotPresent: self ifPresentDo: [ ^ aSet ].
+	self links do: [ :each | each putWithAllLinksTo: aSet ].
+	^ aSet
 ]
 
 { #category : 'private' }
