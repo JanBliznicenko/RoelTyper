@@ -192,7 +192,7 @@ TypeCollector >> addAssignmentForReturnSelf [
 TypeCollector >> addLocalTypingResultsFor: aCompiledCode [
 
 	localTypingResults
-		at: aCompiledCode
+		at: aCompiledCode selector
 		put:
 			((1 to: aCompiledCode sourceNode allOwnTempNames size + 1)
 				 collect: [ :each |
@@ -294,7 +294,8 @@ TypeCollector >> extractClass: aClass withExtraMethod: aCompiledMethod [
 
 { #category : 'adding' }
 TypeCollector >> extractedTypeForReturnInMethod: aCompiledMethod [
-	^(localTypingResults at: aCompiledMethod) last
+
+	^ (localTypingResults at: aCompiledMethod selector) last
 ]
 
 { #category : 'heuristics' }
@@ -374,8 +375,11 @@ TypeCollector >> languageSpecificPushSendOf: selector to: rec args: args [
 { #category : 'private' }
 TypeCollector >> localTypingResultOf: aMethod index: index [
 
-	^ (localTypingResults at: aMethod) at:
-		  (self indexInListForMethod: aMethod index: index)
+	^ (localTypingResults at: aMethod selector)
+		  at: (self indexInListForMethod: aMethod index: index)
+		  ifAbsent: [ (localTypingResults at: aMethod selector) last ].
+	self flag:
+		'The ifAbsent: part is an ugly hack that probably introduces completely wrong types to wrong places. Introduced because few methods had mismatch between amount of variables in RoelTyper and AST'
 ]
 
 { #category : 'private' }
@@ -393,7 +397,7 @@ TypeCollector >> onClass: aClass [
 	typingResults := (instVars collect: [ :ivar |
 		                  ExtractedType forInstvar: ivar inClass: aClass ])
 		                 asArray.
-	localTypingResults := Dictionary new.
+	localTypingResults := IdentityDictionary new.
 	theClass selectorsAndMethodsDo: [ :sel :cm |
 		self addLocalTypingResultsFor: cm ]
 ]
@@ -406,12 +410,12 @@ TypeCollector >> packagedResults [
 	instVars size - theClass instVarNames size + 1 to: instVars size do: [
 		:index |
 		results at: (instVars at: index) put: (self typingResults at: index) ].
-	localTypingResults keysDo: [ :eachMethod |
-		| prefix |
-		prefix := '_' , eachMethod selector , '>>'.
-		(self packagedResultsForCompiledMethod: eachMethod)
-			keysAndValuesDo: [ :eachName :eachExtractedType |
-				results at: (prefix , eachName) asSymbol put: eachExtractedType ] ].
+	localTypingResults keysDo: [ :eachSelector |
+			| prefix |
+			prefix := '_' , eachSelector , '>>'.
+			(self packagedResultsForCompiledMethod: theClass >> eachSelector)
+				keysAndValuesDo: [ :eachName :eachExtractedType |
+					results at: (prefix , eachName) asSymbol put: eachExtractedType ] ].
 
 	^ results
 ]
@@ -421,20 +425,20 @@ TypeCollector >> packagedResultsForCompiledMethod: aCompiledMethod [
 
 	| results arr i |
 	results := IdentityDictionary new.
-	arr := localTypingResults at: aCompiledMethod.
+	arr := localTypingResults at: aCompiledMethod selector.
 
 	i := 0.
 	aCompiledMethod sourceNode allOwnTempNamesByOwners withIndexDo: [
-		:ownerWithListOfVarNames
-		:methodOrBlockIndex |
-		| prefix |
-		prefix := methodOrBlockIndex = 1
-			          ifTrue: [ '' ]
-			          ifFalse: [
-			          '_block' , (methodOrBlockIndex - 1) asString , '->' ].
-		ownerWithListOfVarNames value do: [ :eachVarName |
-			i := i + 1.
-			results at: (prefix , eachVarName) asSymbol put: (arr at: i) ] ].
+			:ownerWithListOfVarNames
+			:methodOrBlockIndex |
+			| prefix |
+			prefix := methodOrBlockIndex = 1
+				          ifTrue: [ '' ]
+				          ifFalse: [
+				          '_block' , (methodOrBlockIndex - 1) asString , '->' ].
+			ownerWithListOfVarNames value do: [ :eachVarName |
+					i := i + 1.
+					results at: (prefix , eachVarName) asSymbol put: (arr at: i) ] ].
 	results at: #'^' put: arr last.
 
 	^ results
@@ -485,7 +489,7 @@ TypeCollector >> theClass [
 { #category : 'adding' }
 TypeCollector >> transformAsBlockArg: anExtractedTypeForTmp [
 
-	(localTypingResults at: anExtractedTypeForTmp compiledMethod)
+	(localTypingResults at: anExtractedTypeForTmp compiledMethod selector)
 		at: anExtractedTypeForTmp tempOffset
 		put: (ExtractedTypeForBlockArg
 				 forOffset: anExtractedTypeForTmp tempOffset
